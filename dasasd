@@ -1,0 +1,80 @@
+import pygame as pg
+import random
+
+level = 400
+while level > 399:
+    level = int(input('Выберите кол-во бомб'))
+field = [['0'] * 30 for i in range(20)]
+for i in range(level):
+    bomb_x = random.randrange(20)
+    bomb_y = random.randrange(20)
+    if field[bomb_y][bomb_x] != 'b':
+        field[bomb_y][bomb_x] = 'b'
+    else:
+        field[random.randrange(20)][random.randrange(20)] = 'b'
+
+pg.init()
+win = pg.display.set_mode((600,600))
+pg.display.set_caption('Сапёр')
+def draw_text(text,x,y,size=30,color = (0,0,0)):
+    font = pg.font.Font(pg.font.match_font('arial'),size)
+    text_surf = font.render(text,True, color)
+    text_rect = text_surf.get_rect()
+    text_rect.midtop = (x,y)
+    win.blit(text_surf,text_rect)
+run  = True
+while run:
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            exit()
+        if event.type == pg.MOUSEBUTTONDOWN:
+            pos = [c//30 for c in event.pos]
+            if event.button == 1:
+                if field[pos[0]][pos[1]] == '0':
+                    if field[pos[0]][pos[1]] == 'b':
+                        field[pos[0]][pos[1]] = 'bomb'
+                    else:
+                        b = 0
+                        for r in range(-1,2):
+                            if pos[1] + r > 19 or pos[0] + r < 0:
+                                continue
+                            for c in range(-1,2):
+                                if pos[1] + c > 19 or pos[0] + c < 0:
+                                    continue
+                                if field[pos[0]+c][pos[1]+r] == 'b' or field[pos[0]+c][pos[1]+r] == 'bomb':
+                                    b += 1
+                        if b > 0:
+                            field[pos[0]][pos[1]] = f'num {b}'
+                        else:
+                            field[pos[0]][pos[1]] = '1'
+                elif field[pos[0]][pos[1]]  == 'b':
+                    field[pos[0]][pos[1]] = 'bomb'
+            elif event.button == 3:
+                if field[pos[0]][pos[1]][-1] == 'F':
+                    field[pos[0]][pos[1]] = field[pos[0]][pos[1]][0]
+                else:
+                    if field[pos[0]][pos[1]] != 'bomb' and field[pos[0]][pos[1]] != '1':
+                        field[pos[0]][pos[1]] += 'flaF'
+
+    win.fill((211,211,211))
+    for x in range(20):
+        for y in range(20):
+            if field[x][y] == 'bomb':
+                pg.draw.rect(win,(255,0,0),(x*30,y*30,30,30))
+                run = False
+            elif field[x][y] == '1':
+                pg.draw.rect(win,(150,150,150),(x*30,y*30,30,30))
+            elif len(field[x][y]) == 5:
+                pg.draw.rect(win, (150, 150, 150), (x * 30, y * 30, 30, 30))
+                draw_text(field[x][y][-1],x*30+15,y*30-2)
+    for step in range(0,600,30):
+        pg.draw.line(win,(0,0,0),(0,step),(600,step))
+        pg.draw.line(win,(0,0,0),(step,0),(step,600))
+    pg.display.update()
+
+while 1:
+    for i in pg.event.get():
+        if i.type == pg.QUIT:
+            exit()
+    draw_text('Ты проиграл',600//2,600//2)
+    pg.display.update()
